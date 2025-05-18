@@ -1,10 +1,17 @@
+using Microsoft.EntityFrameworkCore;
 using RegistroTecnicoPostgre.Components;
+using RegistroTecnicoPostgre.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+var conStr = builder.Configuration.GetConnectionString("DefaultConnection");
+
+//Configura el contexto para PostgreSQL
+builder.Services.AddDbContextFactory<Contexto>(options => options.UseNpgsql(conStr));
 
 var app = builder.Build();
 

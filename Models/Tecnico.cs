@@ -1,9 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace RegistroTecnicoPostgre.Models
 {
-    public class Tecnico: DbContext
+    public class Tecnico
     {
         [Key]
         public int TecnicoId { get; set; }
