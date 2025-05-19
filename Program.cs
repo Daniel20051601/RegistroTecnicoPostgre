@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RegistroTecnicoPostgre.Components;
 using RegistroTecnicoPostgre.DAL;
+using RegistroTecnicoPostgre.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,8 @@ var conStr = builder.Configuration.GetConnectionString("DefaultConnection");
 
 //Configura el contexto para PostgreSQL
 builder.Services.AddDbContextFactory<Contexto>(options => options.UseNpgsql(conStr));
+
+builder.Services.AddScoped<TecnicoServices>();
 
 var app = builder.Build();
 
