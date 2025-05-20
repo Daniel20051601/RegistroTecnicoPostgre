@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace RegistroTecnicoPostgre.Services
 {
-    public class TecnicoServices(DbContextFactory<Contexto> DbFactory)
+    public class TecnicoServices(IDbContextFactory<Contexto> DbFactory)
     {
         private async Task<bool> Existe(int TecnicoId)
         {
@@ -99,4 +99,4 @@ namespace RegistroTecnicoPostgre.Services
         }
     }
 }
-}
+

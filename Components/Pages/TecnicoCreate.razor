@@ -1,139 +1,97 @@
-﻿@page "/Tecnico/Index"
-@using RegistroTecnicoPostgre.Models
-@using RegistroTecnicoPostgre.Services
-
+﻿@page "/Tecnico/Create"
+@inject NavigationManager navigationManager
 @inject TecnicoServices tecnicosService
+@rendermode InteractiveServer
 
-<PageTitle>Registro de Técnicos</PageTitle>
-<div class="container">
-    <div class="card shadow-lg">
+<PageTitle>Crear Técnico</PageTitle>
 
-        <div class="d-flex justify-content-center align-items-center mt-4">
-            <h5 class="card-title mb-0">Consulta de Técnicos</h5>
-        </div>
+<EditForm Model="Tecnico" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <label class="text-danger">@Message</label>
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header text-center bg-primary text-white border-bottom-0">
+                <h5 class="card-title ">Crear Técnico</h5>
+            </div>
 
-        <div class="card-body">
+            <div class="card-body">
 
-            @*labels*@
-            <div class="row">
-
-                @*Filtrar por*@
-                <div class="col-3">
-                    <label class="col-form-label"><strong>Filtrar por</strong></label>
+                <div class="mb-3">
+                    <label for="id" class="form-label">Técnico ID</label>
+                    <input class="form-control" value="@ProximoId" disabled />
                 </div>
 
-                @* Botón Crear  *@
-                <div class="col text-end">
-                    <a href="/Tecnico/Create" class="btn btn-success">
-                        <span class="bi bi-plus-square"></span> Crear
-                    </a>
+                <div class="mb-3">
+                    <label class="form-label"><strong>Nombres</strong></label>
+                    <InputText class="form-control" @bind-Value="Tecnico.Name" />
+                    <ValidationMessage For="@(() => Tecnico.Name)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Sueldo por hora</strong></label>
+                    <InputNumber class="form-control" @bind-Value="Tecnico.sueldo" />
+                    <ValidationMessage For="@(() => Tecnico.sueldo)" />
                 </div>
 
             </div>
 
-            @*Inputs y botones*@
-            <div class="row align-items-center">
-                @*filtro*@
-                <div class="col-3">
-                    <InputSelect class="form-select" @bind-Value="Filtro" @onchange="Ordenar">
-                        <option value="TecnicoId" selected>TécnicoID</option>
-                        <option value="Nombre">Nombre</option>
-                    </InputSelect>
-                </div>
+            <div class="card-footer text-center mt-2">
+                <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
+                    <i class="bi bi-plus-lg"></i>Nuevo
+                </button>
 
-                @*Busqueda*@
-                <div class="col-4">
-                    <div class="input-group">
-                        <input class="form-control" @bind="ValorFiltro" @oninput="Buscar" placeholder="Buscar por nombre" />
-                        <button type="button" class="btn btn-primary" @onclick="Buscar">
-                            <i class="bi bi-search me-1"></i> Buscar
-                        </button>
-                    </div>
-                </div>
+                <button type="submit" class="btn btn-outline-success"> Guardar</button>
+                <a href="/Tecnico/Index" class="btn btn-outline-danger">
+                    <span class="bi bi-arrow-left"></span> Volver
+                </a>
             </div>
-
-            <table class="table table-hover">
-                <thead class="table  table-striped text-black">
-                    <tr>
-                        <th>TecnicoId</th>
-                        <th>Nombre</th>
-                        <th>Sueldo</th>
-                        <th>Editar</th>
-                        <th>Borrar</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var tecnico in ListaTecnicos)
-                    {
-                        <tr>
-                            |
-                            <td> @tecnico.TecnicoId</td>
-                            <td> @tecnico.Name</td>
-                            <td>
-                                <span>@tecnico.sueldo.ToString("F2")</span>
-                            </td>
-
-                            <td>
-                                <a href="/Tecnico/Edit/@tecnico.TecnicoId" class="btn btn-outline-primary bi bi-pencil-square"></a>
-                            </td>
-                            <td>
-                                <a type="button" class="btn btn-danger bi bi-trash" href="/Tecnico/Eliminar/@tecnico.TecnicoId"> </a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
         </div>
     </div>
-</div>
+</EditForm>
+
 
 @code {
-    public List<Tecnico> ListaTecnicos { get; set; } = new List<Tecnico>();
-    public string Filtro { get; set; } = "TecnicoId";
-    public string ValorFiltro { get; set; } = string.Empty;
+    public RegistroTecnicoPostgre.Models.Tecnico Tecnico { get; set; } = new RegistroTecnicoPostgre.Models.Tecnico();
+    private string Message { get; set; } = string.Empty;
+    private int ProximoId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarYOrdenar();
+        ProximoId = await ObtenerSiguienteId();
     }
 
-    private async Task CargarYOrdenar()
+    private async Task<int> ObtenerSiguienteId()
     {
-        // Carga todos los técnicos
-        var lista = await tecnicosService.Listar(t => t.TecnicoId > 0);
+        var lista = await tecnicosService.Listar(t => true);
+        if (lista == null || !lista.Any())
+            return 1;
 
-        // Aplica filtro de búsqueda por nombre si hay texto
-        if (!string.IsNullOrWhiteSpace(ValorFiltro))
+        return lista.Max(t => t.TecnicoId) + 1;
+    }
+
+    public async Task Guardar()
+    {
+        if (await tecnicosService.ExisteNombre(Tecnico.Name))
         {
-            lista = lista
-                .Where(t => t.Name != null && t.Name.ToLower().Contains(ValorFiltro.ToLower()))
-                .ToList();
+            Message = "Ya existe un técnico con este nombre. Por favor, elige un nombre diferente.";
+            return;
         }
 
-        // Ordena según el filtro seleccionado
-        if (Filtro == "Nombre")
-            ListaTecnicos = lista.OrderBy(t => t.Name).ToList();
-        else
-            ListaTecnicos = lista.OrderBy(t => t.TecnicoId).ToList();
-    }
+        var creado = await tecnicosService.Guardar(Tecnico);
 
-    private async Task Buscar()
-    {
-        await CargarYOrdenar();
-    }
-
-    private async Task Ordenar(ChangeEventArgs e)
-    {
-        Filtro = e.Value?.ToString() ?? "TecnicoId";
-        await CargarYOrdenar();
-    }
-
-    private async Task Eliminar(int id)
-    {
-        var result = await tecnicosService.Eliminar(id);
-        if (result)
+        if (creado)
         {
-            await CargarYOrdenar();
+            await Nuevo();
         }
+
+    }
+
+    public async Task Nuevo()
+    {
+        Message = string.Empty;
+        Tecnico = new RegistroTecnicoPostgre.Models.Tecnico();
+        ProximoId = await ObtenerSiguienteId();
+        StateHasChanged();
     }
 }
