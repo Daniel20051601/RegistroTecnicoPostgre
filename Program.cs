@@ -15,6 +15,10 @@ builder.Services.AddRazorComponents()
 
 var conStr = builder.Configuration.GetConnectionString("DefaultConnection");
 
+var connectionString = Environment.GetEnvironmentVariable("DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<Contexto>(options =>
+    options.UseNpgsql(connectionString));
 
 // Configura el contexto de Entity Framework Core para PostgreSQL
 builder.Services.AddDbContextFactory<Contexto>(options =>
