@@ -11,8 +11,8 @@ using RegistroTecnicoPostgre.DAL;
 namespace RegistroTecnicoPostgre.Migrations
 {
     [DbContext(typeof(Contexto))]
-    [Migration("20250519001256_Inicial2")]
-    partial class Inicial2
+    [Migration("20250520054321_Inicial")]
+    partial class Inicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
